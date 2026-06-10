@@ -18,19 +18,32 @@ const SEED_MESSAGES = [
   },
 ];
 
+// In-memory fallback for environments where the filesystem is read-only (e.g. Vercel).
+let memoryStore = null;
+
 async function readMessages() {
   try {
     const raw = await fs.readFile(DATA_FILE, "utf-8");
-    return JSON.parse(raw);
+    memoryStore = JSON.parse(raw);
+    return memoryStore;
   } catch {
-    await writeMessages(SEED_MESSAGES);
-    return SEED_MESSAGES;
+    if (memoryStore) return memoryStore;
+
+    memoryStore = [...SEED_MESSAGES];
+    await writeMessages(memoryStore);
+    return memoryStore;
   }
 }
 
 async function writeMessages(messages) {
-  await fs.mkdir(path.dirname(DATA_FILE), { recursive: true });
-  await fs.writeFile(DATA_FILE, JSON.stringify(messages, null, 2), "utf-8");
+  memoryStore = messages;
+
+  try {
+    await fs.mkdir(path.dirname(DATA_FILE), { recursive: true });
+    await fs.writeFile(DATA_FILE, JSON.stringify(messages, null, 2), "utf-8");
+  } catch {
+    // Local dev uses the JSON file; on Vercel we keep messages in memory only.
+  }
 }
 
 export async function GET() {
