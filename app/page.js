@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 export default function Guestbook() {
   const [name, setName] = useState("");
   const [text, setText] = useState("");
   const [messages, setMessages] = useState([]);
+
+  const listEndRef = useRef(null);
 
   // Load the existing messages when the page first appears.
   useEffect(() => {
@@ -14,15 +16,44 @@ export default function Guestbook() {
       .then((data) => setMessages(data));
   }, []);
 
-  async function handleSubmit(e) {
-    // Type your name and a message, hit Sign, and watch what happens.
-    // The page flashes, the inputs empty out, and your message is gone.
-    // Then, even if it did not, nothing new ever shows up in the list below.
-    // Two things are standing between you and a guestbook that remembers people.
-    await fetch("/api/messages");
+  // Scroll to bottom when messages list updates
+  useEffect(() => {
+    listEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
-    setName("");
-    setText("");
+  async function handleSubmit(e) {
+    e.preventDefault();
+
+    const trimmedName = name.trim();
+    const trimmedText = text.trim();
+
+    if (!trimmedName || !trimmedText) {
+      alert("Name and message are required!");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name: trimmedName, text: trimmedText }),
+      });
+
+      if (res.ok) {
+        const newMessage = await res.json();
+        setMessages((prev) => [...prev, newMessage]);
+        setName("");
+        setText("");
+      } else {
+        const errorData = await res.json();
+        alert(errorData.error || "Failed to sign guestbook.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Something went wrong. Please try again.");
+    }
   }
 
   return (
@@ -42,6 +73,7 @@ export default function Guestbook() {
           Your name
           <input
             type="text"
+            required
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Ada Lovelace"
@@ -52,6 +84,7 @@ export default function Guestbook() {
         <label className="flex flex-col gap-1 text-sm font-medium">
           Your message
           <textarea
+            required
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder="Leave something nice…"
@@ -82,10 +115,18 @@ export default function Guestbook() {
                 key={message.id}
                 className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900"
               >
-                <p className="font-medium">{message.name}</p>
+                <div className="flex justify-between items-baseline gap-2 mb-1">
+                  <p className="font-medium">{message.name}</p>
+                  {message.id > 1000 && (
+                    <span className="text-xs text-zinc-400 font-normal">
+                      {new Date(message.id).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  )}
+                </div>
                 <p className="text-zinc-600 dark:text-zinc-400">{message.text}</p>
               </li>
             ))}
+            <div ref={listEndRef} />
           </ul>
         )}
       </section>
