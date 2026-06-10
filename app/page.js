@@ -15,12 +15,30 @@ export default function Guestbook() {
   }, []);
 
   async function handleSubmit(e) {
-    // Type your name and a message, hit Sign, and watch what happens.
-    // The page flashes, the inputs empty out, and your message is gone.
-    // Then, even if it did not, nothing new ever shows up in the list below.
-    // Two things are standing between you and a guestbook that remembers people.
-    await fetch("/api/messages");
+    e.preventDefault();
 
+    const trimmedName = name.trim();
+    const trimmedText = text.trim();
+
+    if (!trimmedName || !trimmedText) {
+      return;
+    }
+
+    const response = await fetch("/api/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ name: trimmedName, text: trimmedText }),
+    });
+
+    if (!response.ok) {
+      return;
+    }
+
+    const newMessage = await response.json();
+
+    setMessages((currentMessages) => [...currentMessages, newMessage]);
     setName("");
     setText("");
   }
@@ -45,6 +63,7 @@ export default function Guestbook() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Ada Lovelace"
+            required
             className="rounded-md border border-zinc-300 px-3 py-2 text-base font-normal outline-none focus:border-zinc-900 dark:border-zinc-700 dark:focus:border-zinc-100"
           />
         </label>
@@ -56,6 +75,7 @@ export default function Guestbook() {
             onChange={(e) => setText(e.target.value)}
             placeholder="Leave something nice…"
             rows={3}
+            required
             className="resize-none rounded-md border border-zinc-300 px-3 py-2 text-base font-normal outline-none focus:border-zinc-900 dark:border-zinc-700 dark:focus:border-zinc-100"
           />
         </label>
