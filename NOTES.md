@@ -9,15 +9,19 @@ about what confused you and what unstuck you. Short and real beats long and fake
 
 **What I think is wrong (before fixing):**
 
-_Your hypothesis here. Why does hitting Sign reload the whole page?_
+There were 2 issues — one was that the page was reloading on sign button click,
+that is on form submit. First thing I noticed was that `handleSubmit` does not
+have `e.preventDefault()` — the browser was just navigated by the form.
 
 **What did I ask the AI / what did I look up:**
 
-_The prompt or doc that helped. What did it tell you?_
+No need to use AI for this one. I opened the code of `route.js`, analyzed it,
+then opened `page.js`.
 
 **What was the solution:**
 
-_The actual fix, in your own words. What line did you add, and what does it do?_
+I fixed it by adding `e.preventDefault()` first — that is we say stop to the
+process.
 
 ---
 
@@ -25,30 +29,39 @@ _The actual fix, in your own words. What line did you add, and what does it do?_
 
 **What I think is wrong (before fixing):**
 
-_What is wrong with the request the form was firing? What did the Network tab
-show you about its method and body?_
+The other issue was that even when clicking, nothing was saved. Then I noticed
+the awful structure of the method itself — it was violating POST request rules:
+no response handling, no method declaration, no body, no headers.
 
 **What did I ask the AI / what did I look up:**
 
-_Your prompt or doc here._
+No need to use AI for this one either.
 
 **What was the solution:**
 
-_How did you rebuild the fetch call? Which pieces did the POST need that the
-broken version was missing?_
+I used the standard POST request structure given in the portal materials and fit
+it into our project.
 
 ---
 
 ## Closing reflection
 
-_Answer in a few sentences each:_
+- **Why does a `<form>` reload the page by default, and what does `preventDefault`
+  actually prevent?** A form's default job is to send its data to a URL and
+  navigate the browser there — that is the reload you see. `preventDefault()` stops
+  that default navigation so JavaScript can handle the submit instead (with
+  `fetch`, without losing React state).
 
-- Why does a `<form>` reload the page by default, and what does `preventDefault`
-  actually prevent?
-- Why can a GET not carry your message, while a POST can?
-- What is the `Content-Type` header telling the server, and what breaks without
-  it?
+- **Why can a GET not carry your message, while a POST can?** GET is for asking
+  the server for data. POST is for sending data to be saved. Our broken code used
+  GET with no body, so the server had nothing to store. POST carries a JSON body
+  with `name` and `text`.
+
+- **What is the `Content-Type` header telling the server, and what breaks without
+  it?** It tells the server how to read the body — `application/json` means
+  "parse this as JSON." Our route uses `request.json()`, so without that header
+  the server may not read `name` and `text` correctly.
 
 ---
 
-**Live URL (Vercel):** _paste here_
+**Live URL (Vercel):** https://lab-guest-book-pi.vercel.app
