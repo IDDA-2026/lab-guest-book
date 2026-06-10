@@ -55,4 +55,4 @@ Then, on a successful `201` response, I took the returned message from the respo
 
 ---
 
-**Live URL (Vercel):** _Not deployed yet (running locally)_
+**Live URL (Vercel):** https://lab-guest-book.vercel.app
