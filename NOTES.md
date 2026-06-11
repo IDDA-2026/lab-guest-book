@@ -59,4 +59,4 @@ GET is used to ask for information, while POST is used to send new information.
 It is like a warning like: "Be careful,this content is in JSON format"
 
 ---
-**Live URL (Vercel):** _paste here_
+**Live URL (Vercel):** (I forgot sorry,if I have time left today I'll deploy and push again)
