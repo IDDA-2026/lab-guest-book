@@ -27,9 +27,8 @@ export async function POST(request) {
       { status: 400 }
     );
   }
-
-  const newMessage = { id: Date.now(), name, text };
-  messages.push(newMessage);
-
-  return Response.json(newMessage, { status: 201 });
+ const nextId = messages.length > 0 ? messages[messages.length - 1].id + 1 : 1;
+const newMessage = { id: nextId, name, text };
+messages.push(newMessage);
+return Response.json(newMessage, { status: 201 });
 }
