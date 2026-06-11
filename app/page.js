@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { POST } from "./api/messages/route";
 
 export default function Guestbook() {
   const [name, setName] = useState("");
@@ -15,12 +16,20 @@ export default function Guestbook() {
   }, []);
 
   async function handleSubmit(e) {
-    // Type your name and a message, hit Sign, and watch what happens.
-    // The page flashes, the inputs empty out, and your message is gone.
-    // Then, even if it did not, nothing new ever shows up in the list below.
-    // Two things are standing between you and a guestbook that remembers people.
-    await fetch("/api/messages");
+    e.preventDefault();
 
+    if (!name.trim() || !text.trim()) return;
+    const response=await fetch("/api/messages",{
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({name:name, text:text}),
+    });
+    if(response.ok){
+      const newMessage=await response.json();
+      setMessages((prevMessages)=>[...prevMessages,newMessage]);
+    }
     setName("");
     setText("");
   }
