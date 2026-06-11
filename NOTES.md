@@ -33,7 +33,7 @@ Furthermore, I went into the backend `route.js` file and discovered the server w
 ```javascript
 const nextId = messages.length > 0 ? messages[messages.length - 1].id + 1 : 1;
 const newMessage = { id: nextId, name, text };
-
+```
 ---
 
 ## Closing reflection
