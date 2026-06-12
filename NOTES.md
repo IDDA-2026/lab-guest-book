@@ -1,54 +1,37 @@
-# Detective notes
+# Notes
 
-This is your deliverable. We grade the *thinking*, not the word count. Be honest
-about what confused you and what unstuck you. Short and real beats long and fake.
+## What was broken?
 
----
+The guestbook form was reloading the page whenever the user clicked Sign. Because of the page reload, React state was lost and the entered values disappeared.
 
-## Bug 1: the page reloads and my message vanishes
+There was also a second issue: the request sent by the form was not saving any data on the server because it was not sending a proper POST request with a JSON body.
 
-**What I think is wrong (before fixing):**
+## What I changed
 
-_Your hypothesis here. Why does hitting Sign reload the whole page?_
+1. Added `e.preventDefault()` inside the submit handler to stop the browser's default form submission behavior.
+2. Changed the request to use the `POST` method.
+3. Added the `Content-Type: application/json` header.
+4. Sent the form data using `JSON.stringify({ name, text })`.
+5. Parsed the server response with `response.json()`.
+6. Updated the local `messages` state using `setMessages(...)` so the new message appears immediately.
+7. Cleared the input fields after a successful submission.
 
-**What did I ask the AI / what did I look up:**
+## What I learned
 
-_The prompt or doc that helped. What did it tell you?_
+* Why forms reload the page by default.
+* How `preventDefault()` works.
+* The difference between GET and POST requests.
+* How to send JSON data using `fetch`.
+* How to update React state after receiving data from an API.
 
-**What was the solution:**
+## Testing
 
-_The actual fix, in your own words. What line did you add, and what does it do?_
+Verified that:
 
----
-
-## Bug 2: even without the reload, nothing gets saved
-
-**What I think is wrong (before fixing):**
-
-_What is wrong with the request the form was firing? What did the Network tab
-show you about its method and body?_
-
-**What did I ask the AI / what did I look up:**
-
-_Your prompt or doc here._
-
-**What was the solution:**
-
-_How did you rebuild the fetch call? Which pieces did the POST need that the
-broken version was missing?_
-
----
-
-## Closing reflection
-
-_Answer in a few sentences each:_
-
-- Why does a `<form>` reload the page by default, and what does `preventDefault`
-  actually prevent?
-- Why can a GET not carry your message, while a POST can?
-- What is the `Content-Type` header telling the server, and what breaks without
-  it?
-
----
-
-**Live URL (Vercel):** _paste here_
+* The page no longer reloads on submit.
+* A POST request is sent to `/api/messages`.
+* The request contains a JSON body.
+* The server returns status `201`.
+* The new message appears immediately in the list.
+* The inputs are cleared after submission.
+* Messages remain visible after refreshing the page while the dev server is running.
