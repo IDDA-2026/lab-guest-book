@@ -15,14 +15,26 @@ export default function Guestbook() {
   }, []);
 
   async function handleSubmit(e) {
-    // Type your name and a message, hit Sign, and watch what happens.
-    // The page flashes, the inputs empty out, and your message is gone.
-    // Then, even if it did not, nothing new ever shows up in the list below.
-    // Two things are standing between you and a guestbook that remembers people.
-    await fetch("/api/messages");
+    // 1. Stop the browser from reloading the page
+    e.preventDefault();
 
+    // 2. Send the message to the server
+    await fetch("/api/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ name, text }),
+    });
+
+    // 3. Clear the inputs
     setName("");
     setText("");
+
+    // 4. Re-fetch the messages to update the list
+    const res = await fetch("/api/messages");
+    const data = await res.json();
+    setMessages(data);
   }
 
   return (
@@ -79,7 +91,7 @@ export default function Guestbook() {
           <ul className="flex flex-col gap-3">
             {messages.map((message) => (
               <li
-                key={message.id}
+                key={index}
                 className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900"
               >
                 <p className="font-medium">{message.name}</p>
