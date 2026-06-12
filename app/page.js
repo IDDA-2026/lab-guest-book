@@ -7,7 +7,7 @@ export default function Guestbook() {
   const [text, setText] = useState("");
   const [messages, setMessages] = useState([]);
 
-  // Load the existing messages when the page first appears.
+  // Səhifə ilk dəfə açılanda mövcud mesajları yükləyirik (GET)
   useEffect(() => {
     fetch("/api/messages")
       .then((res) => res.json())
@@ -15,14 +15,31 @@ export default function Guestbook() {
   }, []);
 
   async function handleSubmit(e) {
-    // Type your name and a message, hit Sign, and watch what happens.
-    // The page flashes, the inputs empty out, and your message is gone.
-    // Then, even if it did not, nothing new ever shows up in the list below.
-    // Two things are standing between you and a guestbook that remembers people.
-    await fetch("/api/messages");
+    // Addım 1: Səhifənin default yenilənmə davranışını dayandırırıq
+    e.preventDefault();
 
-    setName("");
-    setText("");
+    if (!name.trim() || !text.trim()) return; // Boş məlumat göndərilməsinin qarşısını alırıq
+
+    // Addım 2: Müqaviləyə uyğun düzgün POST sorğusu qururuq
+    const response = await fetch("/api/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ name, text }),
+    });
+
+    if (response.ok) {
+      // Serverin uğurla yaratdığı yeni mesajı oxuyuruq (Status 201)
+      const newMessage = await response.json();
+
+      // Addım 3: Səhifəni yeniləmədən yeni mesajı birbaşa siyahıya əlavə edirik
+      setMessages((prevMessages) => [...prevMessages, newMessage]);
+
+      // İnputları təmizləyirik
+      setName("");
+      setText("");
+    }
   }
 
   return (
