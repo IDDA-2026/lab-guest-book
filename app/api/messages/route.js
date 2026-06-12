@@ -1,17 +1,37 @@
-// A tiny in-memory "database" for the guestbook.
-// It lives in the server's memory, so it survives while the dev server is
-// running and resets when you restart it. That is fine for this lab.
+// A persistent "database" for the guestbook.
+// Messages are stored in a JSON file on disk so they survive server restarts.
 //
-// This file is CORRECT. You do not need to change anything in here. Read it so
-// you understand exactly what the server expects when you POST a new message.
+// On first run (or if the file is missing) the seed data is used automatically.
 
-let messages = [
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from "fs";
+import { join } from "path";
+
+const DATA_DIR = join(process.cwd(), "data");
+const DATA_FILE = join(DATA_DIR, "messages.json");
+
+const SEED = [
   { id: 1, name: "Ada", text: "First! Lovely little guestbook you have here." },
   { id: 2, name: "Grace", text: "Signed it. Let's see if it remembers me…" },
 ];
 
+// Read all messages from disk (or return the seed data if no file exists yet).
+function readMessages() {
+  if (!existsSync(DATA_FILE)) return [...SEED];
+  try {
+    return JSON.parse(readFileSync(DATA_FILE, "utf-8"));
+  } catch {
+    return [...SEED];
+  }
+}
+
+// Write the full messages array to disk as pretty-printed JSON.
+function writeMessages(messages) {
+  if (!existsSync(DATA_DIR)) mkdirSync(DATA_DIR, { recursive: true });
+  writeFileSync(DATA_FILE, JSON.stringify(messages, null, 2));
+}
+
 export async function GET() {
-  return Response.json(messages);
+  return Response.json(readMessages());
 }
 
 export async function POST(request) {
@@ -28,8 +48,10 @@ export async function POST(request) {
     );
   }
 
+  const messages = readMessages();
   const newMessage = { id: Date.now(), name, text };
   messages.push(newMessage);
+  writeMessages(messages);
 
   return Response.json(newMessage, { status: 201 });
 }
