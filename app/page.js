@@ -14,17 +14,29 @@ export default function Guestbook() {
       .then((data) => setMessages(data));
   }, []);
 
-  async function handleSubmit(e) {
-    // Type your name and a message, hit Sign, and watch what happens.
-    // The page flashes, the inputs empty out, and your message is gone.
-    // Then, even if it did not, nothing new ever shows up in the list below.
-    // Two things are standing between you and a guestbook that remembers people.
-    await fetch("/api/messages");
+ const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    setName("");
-    setText("");
+  try {
+    const response = await fetch('/api/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ name, text }),
+    });
+
+    if (response.ok) {
+      const newMessage = await response.json();
+      
+      setMessages((prev) => [...prev, newMessage]);
+      setName('');
+      setText('');
+    }
+  } catch (error) {
+    console.error('Failed to send message:', error);
   }
-
+};
   return (
     <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-10 px-6 py-16">
       <header className="flex flex-col gap-2">
